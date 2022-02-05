@@ -40,7 +40,7 @@ class Tokenizer:
 
     def parse(self) -> tuple:
         tokens = []
-        
+
         while self.car is not None:
             if self.car.isnumeric():
                 tokens.append(self.get_number())
@@ -64,12 +64,11 @@ class Tokenizer:
             elif self.car.isspace():
                 if self.car == '\n':
                     tokens.append(Token(t.NEWLINE, pos_start=self.pos))
-                pass
             else:
                 return [], \
                        InvalidCharacterError(self.pos, f'Character {repr(self.car)} is invalid.')
             self.advance()
-        
+
         tokens.append(Token(t.EOF, pos_start=self.pos))
         return tokens, None
     
@@ -156,5 +155,4 @@ class Tokenizer:
 
 def tokenize(file_name, text: str):
     maker = Tokenizer(file_name, text)
-    res = maker.parse()
-    return res
+    return maker.parse()
