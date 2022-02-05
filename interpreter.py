@@ -159,12 +159,11 @@ class Number(Object):
             return Object.operate_mul(self, other)  # makes not supported error
     
     def operate_div(self, other):
-        if isinstance(other, Number):
-            if other.value == 0:
-                return None, RTError(other.pos_start, other.pos_end, "Division by Zero", self.context)
-            return Number(self.value / other.value).set_context(self.context), None
-        else:
+        if not isinstance(other, Number):
             return Object.operate_div(self, other)  # makes not supported error
+        if other.value == 0:
+            return None, RTError(other.pos_start, other.pos_end, "Division by Zero", self.context)
+        return Number(self.value / other.value).set_context(self.context), None
     
     def operate_pow(self, other):
         if isinstance(other, Number):
@@ -261,8 +260,11 @@ class Function(Object):
         return res.success(value)
     
     def copy(self):
-        copy = Function(self.name, self.parameters, self.body).set_context(self.context).set_pos(self.pos_start, self.pos_end)
-        return copy
+        return (
+            Function(self.name, self.parameters, self.body)
+            .set_context(self.context)
+            .set_pos(self.pos_start, self.pos_end)
+        )
 
 
 class RTResult:
@@ -467,22 +469,19 @@ def run(file_name, text, debug_mode=False):
     tokens, error = tokenize(file_name, text)
     if debug_mode:
         print('TOKENS:', *tokens)
-    
+
     if error is not None:
         return None, error
-    
+
     node, parse_error = make_ast(tokens)
-    
+
     if debug_mode:
         print('NODE  :', node)
         print('------')
-    
+
     if parse_error is not None:
         return None, parse_error
-    
+
     context = Context("<module>", symbol_map=GLOBAL_SYMBOL_MAP)
     res = interpret(node, context)
-    if res.error:
-        return None, res.error
-    else:
-        return res.value, None
+    return (None, res.error) if res.error else (res.value, None)

@@ -119,7 +119,6 @@ class ParseResult:
     
     def register_adv(self):
         self.advancements += 1
-        pass
     
     def register(self, res) -> Node:
         self.advancements += res.advancements
@@ -164,42 +163,37 @@ class Parser:
 
     def expr(self):
         res = ParseResult()
-    
+
         if self.cur_tok.is_equals(t.KW, 'let'):
             res.register_adv()
             self.advance()
-        
+
             if not self.cur_tok.is_type(t.IDENTIFIER):
                 return res.failure(
                     InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected identifier")
                 )
-        
+
             var_name = self.cur_tok
             res.register_adv()
             self.advance()
-        
+
             if not self.cur_tok.is_type(t.EQ):
                 return res.failure(
                     InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected '='")
                 )
-        
+
             res.register_adv()
             self.advance()
             expr = res.register(self.expr())
             if res.error: return res
-        
+
             return res.success(
                 VarAssignNode(var_name, expr)
             )
-    
+
         node = res.register(self.bin_oper(self.comp_expr, ((t.KW, 'and'), (t.KW, 'or'))))
         if res.error: return res
-    
-        if res.error: return res.failure(
-            InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end,
-                               "Expected Expression: let, int, float, identifier, '+', '-' or '('").set_ecode('xp')
-        )
-        
+
         return res.success(node)
     
     def call(self):
